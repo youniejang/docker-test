@@ -3,7 +3,7 @@ pipeline {
     environment {
         repository = "younie/sample"
         DOCKERHUB_CREDENTIALS = credentials('dockerhub-jenkins')
-        dockerImage = ''
+        dockerImage = ' '
     }
 
     agent any
@@ -14,16 +14,27 @@ pipeline {
                     credentialsId: 'github_access_token',
                     url: 'https://github.com/youniejang/docker-test.git'
             }
+
+           post {
+                    success {
+                        echo 'checkout success'
+                    }
+
+                    failure {
+                        echo 'checkout failed'
+                    }
+            }
         }
 
-        stage('build gradle') {
+        stage('build gradle and docker') {
                 steps {
+                    sh "chmod +x -R ${env.WORKSPACE}"
+
                     sh './gradlew build'
 
                     sh 'ls -al ./build'
 
-                    dockerImage = docker.build("$repository:${env.BUILD_NUMBER}")
-
+                    sh 'docker build . -t $repository:${env.BUILD_NUMBER}'
                 }
 
                 post {
