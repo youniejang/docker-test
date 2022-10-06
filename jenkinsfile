@@ -1,0 +1,61 @@
+pipeline {
+    environment {
+        repository = "younie/sample"
+        DOCKERHUB_CREDENTIALS = credentials('dockerhub-jenkins')
+        dockerImage = ''
+    }
+
+    agent any
+    stages {
+        stage('Checkout') {
+            steps {
+                git branch: 'main',
+                    credentialsId: 'github_access_token',
+                    url: 'https://github.com/youniejang/docker-test.git'
+            }
+        }
+
+        stage('build gradle') {
+            steps {
+                sh './gradlew build'
+
+                sh 'ls -al ./build'
+
+                dockerImage = docker.build repository + ":$BUILD_NUMBER"
+            }
+            post {
+                success {
+                    echo 'gradle build success'
+                }
+
+                failure {
+                    echo 'gradle build failed'
+                }
+            }
+
+        }
+
+        stage('Login') {
+            steps {
+                sh 'echo $DOCKERHUB_CREDENTIALS_PSW | docker login -u $DOCKERHUB_CREDENTIALS_USR --password-stdin'
+            }
+
+        }
+
+
+        stage('deploy our image') {
+            steps {
+                sh 'docker push $repository:$BUILD_NUMBER'
+            }
+        }
+
+        stage('cleaning up') {
+            steps {
+
+                sh 'docker rmi $repository:$BUILD_NUMBER'
+            }
+
+        }
+
+    }
+}
