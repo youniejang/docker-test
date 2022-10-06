@@ -1,3 +1,4 @@
+
 pipeline {
     environment {
         repository = "younie/sample"
@@ -21,8 +22,8 @@ pipeline {
 
                 sh 'ls -al ./build'
 
-                dockerImage = docker.build repository + ":$BUILD_NUMBER"
-            }
+                dockerImage = docker.build("$repository:${env.BUILD_NUMBER}")
+
             post {
                 success {
                     echo 'gradle build success'
@@ -45,17 +46,18 @@ pipeline {
 
         stage('deploy our image') {
             steps {
-                sh 'docker push $repository:$BUILD_NUMBER'
+                sh 'docker push $repository:${env.BUILD_NUMBER'
             }
         }
 
         stage('cleaning up') {
             steps {
 
-                sh 'docker rmi $repository:$BUILD_NUMBER'
+                sh 'docker rmi $repository:${env.BUILD_NUMBER'
             }
 
         }
+
 
     }
 }
