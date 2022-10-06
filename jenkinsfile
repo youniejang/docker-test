@@ -36,8 +36,6 @@ pipeline {
 
                     sh './gradlew build'
 
-                    sh 'ls -al ./build'
-
                     sh 'docker build . -t $repository:${env.BUILD_NUMBER}'
                 }
 

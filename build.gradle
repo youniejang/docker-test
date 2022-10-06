@@ -4,6 +4,10 @@ plugins {
 	id 'java'
 }
 
+tasks.jar {
+	enabled = false
+}
+
 group = 'aws.test'
 version = '0.0.1-SNAPSHOT'
 sourceCompatibility = '17'
