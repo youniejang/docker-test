@@ -46,14 +46,14 @@ pipeline {
 
         stage('deploy our image') {
             steps {
-                sh 'docker push $repository:${env.BUILD_NUMBER'
+                sh 'docker push $repository:${env.BUILD_NUMBER}'
             }
         }
 
         stage('cleaning up') {
             steps {
 
-                sh 'docker rmi $repository:${env.BUILD_NUMBER'
+                sh 'docker rmi $repository:${env.BUILD_NUMBER}'
             }
 
         }
