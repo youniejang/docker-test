@@ -17,47 +17,48 @@ pipeline {
         }
 
         stage('build gradle') {
-            steps {
-                sh './gradlew build'
+                steps {
+                    sh './gradlew build'
 
-                sh 'ls -al ./build'
+                    sh 'ls -al ./build'
 
-                dockerImage = docker.build("$repository:${env.BUILD_NUMBER}")
+                    dockerImage = docker.build("$repository:${env.BUILD_NUMBER}")
 
-            post {
-                success {
-                    echo 'gradle build success'
                 }
 
-                failure {
-                    echo 'gradle build failed'
+                post {
+                    success {
+                        echo 'gradle build success'
+                    }
+
+                    failure {
+                        echo 'gradle build failed'
+                    }
                 }
-            }
 
         }
 
-        stage('Login') {
-            steps {
-                sh 'echo $DOCKERHUB_CREDENTIALS_PSW | docker login -u $DOCKERHUB_CREDENTIALS_USR --password-stdin'
-            }
+       stage('Login') {
+                steps {
+                    sh 'echo $DOCKERHUB_CREDENTIALS_PSW | docker login -u $DOCKERHUB_CREDENTIALS_USR --password-stdin'
+                }
 
-        }
-
-
-        stage('deploy our image') {
-            steps {
-                sh 'docker push $repository:${env.BUILD_NUMBER}'
-            }
-        }
-
-        stage('cleaning up') {
-            steps {
-
-                sh 'docker rmi $repository:${env.BUILD_NUMBER}'
-            }
-
-        }
+       }
 
 
+       stage('deploy our image') {
+                steps {
+                    sh 'docker push $repository:${env.BUILD_NUMBER}'
+                }
+       }
+
+       stage('cleaning up') {
+                steps {
+
+                    sh 'docker rmi $repository:${env.BUILD_NUMBER}'
+                }
+
+       }
     }
+
 }
