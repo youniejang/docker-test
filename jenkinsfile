@@ -73,6 +73,7 @@ pipeline {
        }
 
     }
+}
 
     node {
         withCredentials([sshUserPrivateKey(credentialsId: 'aws_ssh', keyFileVariable: 'identity', passphraseVariable: 'passphrase', usernameVariable: 'userName')]) {
@@ -93,6 +94,3 @@ pipeline {
             }
         }
     }
-
-
-}
