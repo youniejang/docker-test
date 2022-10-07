@@ -5,9 +5,8 @@ pipeline {
     }
 
     environment {
-        repository = "younie/sample"
+        DOCKERHUB_NAME = "younie/sample"
         DOCKERHUB_CREDENTIALS = credentials('dockerhub-jenkins')
-        dockerImage = ' '
     }
 
     agent any
@@ -36,9 +35,7 @@ pipeline {
 
                     sh './gradlew build'
 
-                    sh echo '$repository:${env.BUILD_NUMBER}'
-
-                    sh 'docker build . -t $repository:${env.BUILD_NUMBER}'
+                    sh 'docker build . -t $DOCKERHUB_NAME:${BUILD_NUMBER}.0.0'
                 }
 
                 post {
@@ -63,17 +60,39 @@ pipeline {
 
        stage('deploy our image') {
                 steps {
-                    sh 'docker push $repository:${env.BUILD_NUMBER}'
+                    sh 'docker push $DOCKERHUB_NAME:${BUILD_NUMBER}.0.0'
                 }
        }
 
        stage('cleaning up') {
                 steps {
 
-                    sh 'docker rmi $repository:${env.BUILD_NUMBER}'
+                    sh 'docker rmi $DOCKERHUB_NAME:${BUILD_NUMBER}.0.0'
                 }
 
        }
+
     }
+
+    node {
+        withCredentials([sshUserPrivateKey(credentialsId: 'aws_ssh', keyFileVariable: 'identity', passphraseVariable: 'passphrase', usernameVariable: 'userName')]) {
+            def remote = [:]
+            remote.name = "ec2-user"
+            remote.host = "ec2-43-201-25-219.ap-northeast-2.compute.amazonaws.com"
+            remote.allowAnyHosts = true
+            remote.user = userName
+            remote.identityFile = identity
+            //remote.passphrase = passphrase
+            stage("SSH docker build run!") {
+                //실행되고 있는 도커 중지 및 삭제
+                sshCommand remote: remote, command: 'docker ps -q --filter "name=$DOCKERHUB_NAME" | grep -q . && docker stop $DOCKERHUB_NAME && docker rm $DOCKERHUB_NAME | true'
+                //도커 pull
+                sshCommand remote: remote, command: 'docker pull $DOCKERHUB_NAME:${BUILD_NUMBER}.0.0'
+                //도커 실행
+                sshCommand remote: remote, command: 'docker run -p 80:80 -d --name=$DOCKERHUB_NAME $DOCKERHUB_NAME:${BUILD_NUMBER}.0.0'
+            }
+        }
+    }
+
 
 }
